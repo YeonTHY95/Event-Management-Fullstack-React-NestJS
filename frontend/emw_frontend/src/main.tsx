@@ -11,7 +11,7 @@ import {
 
 import SignUp from './SignUp.tsx';
 import UserView from './UserView.tsx';
-
+import AddEvent from './AddEvent.tsx';
 import { UserProvider } from './UserContext';
 
 const queryClient = new QueryClient();
@@ -29,6 +29,10 @@ const router = createBrowserRouter([
   {
     path: "/userview",
     element : <UserView />,
+  },
+  {
+    path: "/add-event",
+    element : <AddEvent />,
   }
 ]);
 
