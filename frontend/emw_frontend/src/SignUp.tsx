@@ -118,24 +118,24 @@ export default function SignUp() {
                 </FormControl> */}
 
                 <Controller
-                control={control}
-                name="role"
-                defaultValue="user"
-                render={({ field }) => (
-                    <FormControl>
-                    <FormLabel id="role-label">Role</FormLabel>
-                    <RadioGroup
-                        {...field}
-                        aria-labelledby="role-label"
-                        name="role"
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                    >
-                        <FormControlLabel value="user" control={<Radio />} label="Normal User" />
-                        <FormControlLabel value="admin" control={<Radio />} label="Admin" />
-                    </RadioGroup>
-                    </FormControl>
-                )}
+                    control={control}
+                    name="role"
+                    defaultValue="user"
+                    render={({ field }) => (
+                        <FormControl>
+                        <FormLabel id="role-label">Role</FormLabel>
+                        <RadioGroup
+                            {...field}
+                            aria-labelledby="role-label"
+                            name="role"
+                            value={field.value}
+                            onChange={(e) => field.onChange(e.target.value)}
+                        >
+                            <FormControlLabel value="user" control={<Radio />} label="Normal User" />
+                            <FormControlLabel value="admin" control={<Radio />} label="Admin" />
+                        </RadioGroup>
+                        </FormControl>
+                    )}
                 />
             </Stack>
             <Button type="submit" variant="contained" color="primary">
