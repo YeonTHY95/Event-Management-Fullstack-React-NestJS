@@ -1,14 +1,14 @@
-import { Body, Controller , HttpException, HttpStatus, Post, Res} from '@nestjs/common';
+import { Body, Controller , HttpException, HttpStatus, Post, Req, Res} from '@nestjs/common';
 import { SignUpDTO, LoginDTO} from '../DTO/DTO';
 import { UserService } from './user.service';
 import { AuthService } from 'src/auth/auth.service';
 
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 @Controller('user')
 export class UserController {
 
-    constructor(private userService : UserService, private authServer : AuthService) {}
+    constructor(private userService : UserService, private authService : AuthService) {}
 
     @Post("signup")
     async signUp(@Body() signUpDTO : SignUpDTO ) {
@@ -28,7 +28,7 @@ export class UserController {
         console.log("Inside UserController login");
         try {
             const loginUser = await this.userService.login(loginDTO) ;
-            const { accessToken, refreshToken } = await this.authServer.generateTokens(loginUser.email);
+            const { accessToken, refreshToken } = await this.authService.generateTokens(loginUser.email);
             response.cookie('access_token', accessToken, {
                 httpOnly: true,
                 // secure: true,
@@ -58,5 +58,28 @@ export class UserController {
         res.clearCookie('access_token');
         res.clearCookie('refresh_token');
         return { message: 'Logged out' };
+    }
+
+    @Post('refresh')
+    refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+        console.error("Inside Refresh ");
+        const accessToken = req.cookies['access_token'];
+        const refreshToken = req.cookies['refresh_token'];
+
+        if (!accessToken || !refreshToken) {
+            throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+        }
+
+        const renewedAccessToken = this.authService.refreshAccessToken(refreshToken);
+        
+        res.cookie('access_token', renewedAccessToken, {
+            httpOnly: true,
+            // secure: true,
+            // sameSite: 'strict',
+            // path: '/auth/refresh',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+        
+        return { message: 'Tokens refreshed' };
     }
 }

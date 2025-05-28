@@ -21,6 +21,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import TextField from '@mui/material/TextField';
 import { visuallyHidden } from '@mui/utils';
+import { useQuery } from '@tanstack/react-query';
+import axiosWithCredentials from './axiosWithCredentials';
 
 interface Data {
   id: number;
@@ -269,6 +271,19 @@ export default function EventTable() {
 
   const [filter, setFilter] = React.useState('');
 
+  const { data, isPending, error} = useQuery({
+    queryKey: ['fetchAllEvents'],
+    queryFn: async () => {
+      const response = await axiosWithCredentials.get('http://localhost:8000/event/getAllEvents');
+      if (!response) {
+        throw new Error('Network response was not ok');
+      }
+
+      console.log("Response from getAllEvents: ", response.data);
+      return response.data;
+    },
+  });
+
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
     property: keyof Data,
@@ -319,7 +334,21 @@ export default function EventTable() {
     setDense(event.target.checked);
   };
 
-  const filteredRows = rows.filter(row => row.name.toLowerCase().includes(filter.toLowerCase()));
+  type eventType = {
+    id: number;
+    name: string;
+    startDate: Date;
+    endDate: Date;
+    status: "Ongoing" | "Completed";
+    thumbnail: string;
+    mimeType: string; 
+    location: string;
+  }
+
+  if (isPending) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  // const filteredRows = rows.filter(row => row.name.toLowerCase().includes(filter.toLowerCase()));
+  const filteredRows = data.filter((row: eventType) => row.name?.toLowerCase().includes(filter.toLowerCase()));
   const visibleRows = [...filteredRows].sort(getComparator(order, orderBy)).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
 
@@ -334,6 +363,9 @@ export default function EventTable() {
 //         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
 //     [order, orderBy, page, rowsPerPage],
 //   );
+
+
+
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -355,7 +387,8 @@ export default function EventTable() {
               orderBy={orderBy}
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
-              rowCount={rows.length}
+              rowCount={data.length}
+              // rowCount={rows.length}
             />
             <TableBody>
               {visibleRows.map((row, index) => {
@@ -390,10 +423,11 @@ export default function EventTable() {
                     >
                       {row.name}
                     </TableCell>
-                    <TableCell align="center">{row.startDate.toLocaleDateString()}</TableCell>
-                    <TableCell align="center">{row.endDate.toLocaleDateString()}</TableCell>
+                    <TableCell align="center">{row.startDate.split("T")[0]}</TableCell>
+                    <TableCell align="center">{row.endDate.split("T")[0]}</TableCell>
                     <TableCell align="center">{row.status}</TableCell>
-                    <TableCell align="center">{row.thumbnail}</TableCell>
+                    {/* <TableCell align="center"><img src={`data:image/jpeg;base64,${row.thumbnail}`} alt="Event thumbnail" /></TableCell> */}
+                    <TableCell align="center"><img src={row.thumbnail}  alt="Event thumbnail" width={200} height={200}/></TableCell>
                     <TableCell align="center">{row.location}</TableCell>
                   </TableRow>
                 );

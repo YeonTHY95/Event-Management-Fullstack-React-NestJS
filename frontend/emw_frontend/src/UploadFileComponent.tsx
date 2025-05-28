@@ -87,6 +87,6 @@ export default function UploadFileComponent({setValue, watch, error}:{setValue :
                 >Upload a file</button>
             )} */}
 
-            </>
+        </>
   )
 }

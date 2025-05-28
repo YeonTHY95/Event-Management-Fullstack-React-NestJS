@@ -35,7 +35,9 @@ const addEventSchema = z.object({
     thumbnail: z.instanceof(File).refine(file => file.size > 0, {
         message: "Thumbnail is required",
     }),
-});
+}).refine((data) => data.startDate < data.endDate, {
+    message: "Start date must be before end date",
+    });
 
 type addEventZod = z.infer<typeof addEventSchema>;
 
@@ -65,12 +67,13 @@ export default function AddEvent() {
         const form = new FormData();
         form.append("eventName", formData.eventName);
         form.append("startDate", formData.startDate.toISOString());
-        // form.append("endDate", formData.endDate.toISOString());
-        // form.append("location", formData.location);
-        // form.append("thumbnail", formData.thumbnail);
+        form.append("endDate", formData.endDate.toISOString());
+        form.append("location", formData.location);
+        form.append("thumbnail", formData.thumbnail);
+        form.append("ownerId", user?.id?.toString() || ""); // Ensure ownerId is a string
 
         try {
-            console.log("Inside addEventAction with formData: ", form);
+            console.log("Inside addEventAction with formData: ", formData);
             // console.log("Thumbnail value:", formData.thumbnail);
             const response = await axios.post("http://localhost:8000/event/add", form, {
                 headers: {
@@ -119,7 +122,6 @@ export default function AddEvent() {
                         />
                         <TextField placeholder="Location" label="Location" error={!!errors.location} helperText={errors.location?.message} {...register("location")} />
                         <UploadFileComponent setValue={setValue} watch={watch} error={errors.thumbnail} />
-                        {errors.thumbnail && <p style={{ color: "red" }}>{errors.thumbnail.message}</p>}
                     </Stack>
                 </Box>
                 <Button type="submit">Submit</Button>

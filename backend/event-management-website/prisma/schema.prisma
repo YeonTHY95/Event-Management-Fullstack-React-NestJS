@@ -32,6 +32,7 @@ model Event {
   endDate DateTime? 
   location    String    
   thumbnail     Bytes
+  status   String @default("Ongoing")
   owner  User @relation(fields: [ownerId], references: [id])
   ownerId Int
 }

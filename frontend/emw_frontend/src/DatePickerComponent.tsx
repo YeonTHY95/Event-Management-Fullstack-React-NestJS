@@ -5,6 +5,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { Controller } from 'react-hook-form';
+import type { PickerValue } from '@mui/x-date-pickers/internals';
 
 export default function DatePickerComponent({label, name, control, error }:{label:string, name:string, control : any , error?:string}) {
 
@@ -18,7 +19,7 @@ export default function DatePickerComponent({label, name, control, error }:{labe
           <>
             <DatePicker
               label={label}
-              value={field.value ? dayjs(field.value) : dayjs(Date.now())}
+              value={field.value ? dayjs(field.value) : null } // dayjs(Date.now())
               onChange={(date) => field.onChange(date?.toDate() ?? null)}
             />
             {error && <p style={{ color: 'red' }}>{error}</p>}

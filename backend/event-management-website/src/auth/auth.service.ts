@@ -17,7 +17,7 @@ export class AuthService {
         return { accessToken, refreshToken };
     }
 
-    async refreshAccessToken(email: string, refreshToken: string) {
+    async refreshAccessToken( refreshToken: string) {
         // Verify if the refresh token is valid
         const payload = await this.jwt.verifyAsync(
             refreshToken,
@@ -27,12 +27,12 @@ export class AuthService {
         );
 
         console.log("Inside updateRefreshToken, after verifyAsync payload is: ", payload);
-        const test = email === payload.sub;
+        // const test = email === payload.sub;
         console.log("Payload Test result: ", test);
         if (!payload) {
             throw new Error('Invalid refresh token');
         }
-        const renewedAccessToken = await this.jwt.signAsync({ sub:  email }, { expiresIn: '60s', secret: process.env.ACCESS_TOKEN_SECRET });
+        const renewedAccessToken = await this.jwt.signAsync({ sub:  payload.email }, { expiresIn: '60s', secret: process.env.ACCESS_TOKEN_SECRET });
         return renewedAccessToken;
     }
 
