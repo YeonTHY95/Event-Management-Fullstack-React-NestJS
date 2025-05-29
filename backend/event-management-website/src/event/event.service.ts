@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreateEventDTO } from 'src/DTO/DTO';
+import { CreateEventDTO, UpdateEventDTO } from 'src/DTO/DTO';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -19,6 +19,31 @@ export class EventService {
               thumbnail: thumbnailFile.buffer, // 🟢 This stores image bytes
               ownerId: Number(createEventDTO.ownerId), 
             },
+          });
+
+        if (event) {
+            console.log('Event added successfully:', event);
+            return event;
+        }
+        throw new Error('Failed to add event');
+    }
+
+    async updateEventToDatabase(updateEventDTO: UpdateEventDTO, thumbnailFile: Express.Multer.File): Promise<any> {
+
+        console.log('Inside update EventToDatabase, Event data received:', updateEventDTO);
+        const event = await this.prismaService.event.update({
+            where: {
+              id : Number(updateEventDTO.eventID),
+            },
+            data : {
+                name: updateEventDTO.eventName,
+                startDate: new Date(updateEventDTO.startDate),
+                endDate:  new Date(updateEventDTO.endDate),
+                status:  updateEventDTO.status,
+                location: updateEventDTO.location,
+                thumbnail: thumbnailFile.buffer, // 🟢 This stores image bytes
+                ownerId: Number(updateEventDTO.ownerId),
+            }
           });
 
         if (event) {

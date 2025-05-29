@@ -23,6 +23,9 @@ import TextField from '@mui/material/TextField';
 import { visuallyHidden } from '@mui/utils';
 import { useQuery } from '@tanstack/react-query';
 import axiosWithCredentials from './axiosWithCredentials';
+import EditIcon from '@mui/icons-material/Edit';
+import { Button } from '@mui/material';
+import { useNavigate } from 'react-router';
 
 interface Data {
   id: number;
@@ -271,6 +274,8 @@ export default function EventTable() {
 
   const [filter, setFilter] = React.useState('');
 
+  const navigate = useNavigate();
+
   const { data, isPending, error} = useQuery({
     queryKey: ['fetchAllEvents'],
     queryFn: async () => {
@@ -364,7 +369,12 @@ export default function EventTable() {
 //     [order, orderBy, page, rowsPerPage],
 //   );
 
+  
 
+  const editEvent = (row : eventType) => {
+      navigate(`/edit-event/${row.id}`, { state: { eventData: row } });
+      // alert(`Edit Event : ${row.name}`);
+    }
 
 
   return (
@@ -421,6 +431,10 @@ export default function EventTable() {
                       scope="row"
                       padding="none"
                     >
+                      <Button onClick={()=> editEvent(row)}>
+                        <EditIcon/>
+                      </Button>
+                      
                       {row.name}
                     </TableCell>
                     <TableCell align="center">{row.startDate.split("T")[0]}</TableCell>

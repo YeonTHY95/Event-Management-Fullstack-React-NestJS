@@ -32,3 +32,33 @@ export class CreateEventDTO {
   @IsInt()
   ownerId: number;
 }
+
+export class UpdateEventDTO {
+
+  @IsInt()
+  @IsNotEmpty()
+  eventID: number;
+
+  @IsString()
+  @IsNotEmpty()
+  eventName: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  startDate: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  endDate: string;
+
+  @IsString()
+  @IsNotEmpty()
+  location: string;
+
+  @IsString()
+  @IsNotEmpty()
+  status: string;
+
+  @IsInt()
+  ownerId: number;
+}

@@ -15,9 +15,9 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DatePickerComponent from './DatePickerComponent';
 import UploadFileComponent from './UploadFileComponent';
 import dayjs, { Dayjs } from 'dayjs';
+import axiosWithCredentials from './axiosWithCredentials';
 
-
-type AddEventFormData = {
+type EventFormData = {
     eventName: string;
     startDate: Date ;
     endDate: Date ;   
@@ -37,10 +37,13 @@ const addEventSchema = z.object({
     }),
 }).refine((data) => data.startDate < data.endDate, {
     message: "Start date must be before end date",
+    path: ["endDate"],
     });
 
+    
+    
+    
 type addEventZod = z.infer<typeof addEventSchema>;
-
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
     clipPath: 'inset(50%)',
@@ -61,7 +64,7 @@ export default function AddEvent() {
         resolver: zodResolver(addEventSchema),
     });
 
-    const addEventAction:SubmitHandler<addEventZod> = async (formData:AddEventFormData) => {
+    const addEventAction:SubmitHandler<addEventZod> = async (formData:EventFormData) => {
 
         console.log("Form submitted:", formData);
         const form = new FormData();
@@ -75,7 +78,7 @@ export default function AddEvent() {
         try {
             console.log("Inside addEventAction with formData: ", formData);
             // console.log("Thumbnail value:", formData.thumbnail);
-            const response = await axios.post("http://localhost:8000/event/add", form, {
+            const response = await axiosWithCredentials.post("http://localhost:8000/event/add", form, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -91,6 +94,11 @@ export default function AddEvent() {
     
   return (
     <Box sx={{ padding: 2 }}>
+        <Box sx={{ marginBottom: 2 }}>
+            <Button variant="contained" color="primary" onClick={() => navigate("/userview")}>
+                Back
+            </Button>
+        </Box>
         <h1>Add Event</h1>
         <Box>
             <form onSubmit={handleSubmit(addEventAction)} >

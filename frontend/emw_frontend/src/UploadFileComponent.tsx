@@ -1,10 +1,10 @@
-import React , { useState } from 'react';
+import React , { useEffect, useState } from 'react';
 import { styled } from '@mui/material/styles';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { Button , TextField} from '@mui/material';
 import type { UseFormSetValue, UseFormWatch, FieldError } from 'react-hook-form';
 
-export default function UploadFileComponent({setValue, watch, error}:{setValue : UseFormSetValue<any>, watch: UseFormWatch<any>, error?: FieldError;}) {
+export default function UploadFileComponent({setValue, watch, error, previousFile}:{setValue : UseFormSetValue<any>, watch: UseFormWatch<any>, error?: FieldError , previousFile?:File}) {
 
     const VisuallyHiddenInput = styled('input')({
         clip: 'rect(0 0 0 0)',
@@ -18,7 +18,7 @@ export default function UploadFileComponent({setValue, watch, error}:{setValue :
         width: 1,
     });
 
-    const [file, setFile] = useState<File | null>(null);
+    const [file, setFile] = useState<File | null>(previousFile || null);
     const [preview, setPreview] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,6 +39,15 @@ export default function UploadFileComponent({setValue, watch, error}:{setValue :
 
 
   };
+
+  useEffect(() => {
+    if (file) {
+      const fileReader = new FileReader();
+      fileReader.onload = () => {
+        setPreview(fileReader.result as string);
+      };
+      fileReader.readAsDataURL(file);
+    } }, [file]);
 
 //   const handleUpload = async () => {
 //     if (!file) {

@@ -13,6 +13,7 @@ import SignUp from './SignUp.tsx';
 import UserView from './UserView.tsx';
 import AddEvent from './AddEvent.tsx';
 import { UserProvider } from './UserContext';
+import EditEvent from './EditEvent.tsx';
 
 const queryClient = new QueryClient();
 
@@ -33,7 +34,11 @@ const router = createBrowserRouter([
   {
     path: "/add-event",
     element : <AddEvent />,
-  }
+  },
+  {
+    path: "/edit-event/:editId",
+    element : <EditEvent />,
+  },
 ]);
 
 createRoot(document.getElementById('root')!).render(
