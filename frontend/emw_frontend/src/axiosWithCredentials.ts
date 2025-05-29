@@ -2,7 +2,7 @@ import axios, { isAxiosError } from 'axios';
 
 //const baseURL = '/mongobe';
 const axiosWithCredentials =  axios.create({
-    //withCredentials: true
+    withCredentials: true
     // baseURL : "http://localhost:8000/api/"
 });
 

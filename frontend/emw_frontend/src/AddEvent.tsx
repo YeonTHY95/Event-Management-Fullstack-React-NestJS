@@ -82,7 +82,7 @@ export default function AddEvent() {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
-                withCredentials: true,
+                // withCredentials: true,
             });
             console.log("Event added successfully:", response.data);
             navigate("/userview");

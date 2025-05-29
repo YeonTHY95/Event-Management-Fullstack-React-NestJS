@@ -31,15 +31,15 @@ export class UserController {
             const { accessToken, refreshToken } = await this.authService.generateTokens(loginUser.email);
             response.cookie('access_token', accessToken, {
                 httpOnly: true,
-                // secure: true,
-                // sameSite: 'strict',
+                secure: true,
+                sameSite: 'none',
                 // path: '/auth/refresh',
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
               });
             response.cookie('refresh_token', refreshToken, {
                 httpOnly: true,
-                // secure: true,
-                // sameSite: 'strict',
+                secure: true,
+                sameSite: 'none',
                 // path: '/auth/refresh',
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
               });
@@ -66,6 +66,10 @@ export class UserController {
         const accessToken = req.cookies['access_token'];
         const refreshToken = req.cookies['refresh_token'];
 
+        console.log("Cookies: ", req.cookies);
+        console.log("Access Token: ", accessToken);
+        console.log("Refresh Token: ", refreshToken);
+
         if (!accessToken || !refreshToken) {
             throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
         }
@@ -74,8 +78,8 @@ export class UserController {
         
         res.cookie('access_token', renewedAccessToken, {
             httpOnly: true,
-            // secure: true,
-            // sameSite: 'strict',
+            secure: true,
+            sameSite: 'none',
             // path: '/auth/refresh',
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });

@@ -86,7 +86,8 @@ function App() {
 
   return (
     <>
-      <h1>Login Page</h1>
+      <h1>Welcome to Event Management System</h1>
+      <h2>Login Page</h2>
       <p style={{color:"red", fontSize:"20px"}}>{ errors.root && errors.root.message}</p>
       <form onSubmit={handleSubmit(handleLogin)}>
         <Stack direction="column" spacing={2}>

@@ -1,14 +1,16 @@
-import { Body, Controller, Post, UploadedFile, UseInterceptors , Get, Patch, HttpException, HttpStatus} from '@nestjs/common';
+import { Body, Controller, Post, UploadedFile, UseInterceptors , Get, Patch, HttpException, HttpStatus, UseGuards} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateEventDTO, UpdateEventDTO , DeleteEventDTO} from 'src/DTO/DTO';
 import { EventService } from './event.service';
 import { fileTypeFromBuffer } from 'file-type';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('event')
 export class EventController {
 
     constructor(private eventService : EventService) {}
 
+    @UseGuards(AuthGuard)
     @Post('add')
     @UseInterceptors(FileInterceptor('thumbnail'))
     async addEvent(@UploadedFile() file: Express.Multer.File ,@Body() createEventDTO: CreateEventDTO) {
