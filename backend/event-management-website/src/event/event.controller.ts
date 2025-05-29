@@ -1,6 +1,6 @@
-import { Body, Controller, Post, UploadedFile, UseInterceptors , Get, Patch} from '@nestjs/common';
+import { Body, Controller, Post, UploadedFile, UseInterceptors , Get, Patch, HttpException, HttpStatus} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CreateEventDTO, UpdateEventDTO } from 'src/DTO/DTO';
+import { CreateEventDTO, UpdateEventDTO , DeleteEventDTO} from 'src/DTO/DTO';
 import { EventService } from './event.service';
 import { fileTypeFromBuffer } from 'file-type';
 
@@ -59,6 +59,30 @@ export class EventController {
         return {
             message: 'Event updated successfully',
         };
+        
+    }
+    @Post('delete')
+    async deleteEvent(@Body() deleteEventDTO: DeleteEventDTO) {
+
+        console.log("Inside delete Event, Event data received:", deleteEventDTO);
+
+        try {
+            const events = await this.eventService.deleteEvent(deleteEventDTO);
+    
+            if (!events) {
+                console.error('Failed to delete event');
+                throw new Error('Failed to update event');
+            }
+    
+            return {
+                message: 'Selected Event successfully',
+            };
+            
+        }
+        catch (error) {
+            console.error('Inside Delete Event Catch Error:', error);
+            throw new HttpException("Invalid Password", HttpStatus.BAD_REQUEST);
+        }
         
     }
 }

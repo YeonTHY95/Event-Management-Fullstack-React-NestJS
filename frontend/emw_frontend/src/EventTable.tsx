@@ -26,6 +26,15 @@ import axiosWithCredentials from './axiosWithCredentials';
 import EditIcon from '@mui/icons-material/Edit';
 import { Button } from '@mui/material';
 import { useNavigate } from 'react-router';
+import { UserContext } from './UserContext';
+
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import axios from 'axios';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Data {
   id: number;
@@ -200,9 +209,11 @@ interface EnhancedTableToolbarProps {
   numSelected: number;
   filter: string;
   onFilterChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  selected: readonly number[];
+  handleClickOpen: () => void;
 }
 function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
-  const { numSelected , filter, onFilterChange} = props;
+  const { numSelected , filter, onFilterChange, selected, handleClickOpen} = props;
   return (
     <Toolbar
       sx={[
@@ -241,7 +252,12 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
       )}
       {numSelected > 0 ? (
         <Tooltip title="Delete">
-          <IconButton onClick={() => alert(`Delete ${numSelected} selected events`)}>
+          <IconButton onClick={() => {
+
+            // alert(`Delete ${numSelected} selected events ID ${selected.join(', ')}`);
+            handleClickOpen();
+            }
+          }>
             <DeleteIcon />
           </IconButton>
         </Tooltip>
@@ -272,11 +288,22 @@ export default function EventTable() {
   const [dense, setDense] = React.useState(false);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
+  const [open, setOpen] = React.useState(false);
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   const [filter, setFilter] = React.useState('');
+
+  const {user} = React.useContext(UserContext);
 
   const navigate = useNavigate();
 
-  const { data, isPending, error} = useQuery({
+  const { data, isPending, error,refetch} = useQuery({
     queryKey: ['fetchAllEvents'],
     queryFn: async () => {
       const response = await axiosWithCredentials.get('http://localhost:8000/event/getAllEvents');
@@ -287,6 +314,7 @@ export default function EventTable() {
       console.log("Response from getAllEvents: ", response.data);
       return response.data;
     },
+    gcTime : 0
   });
 
   const handleRequestSort = (
@@ -375,15 +403,25 @@ export default function EventTable() {
       navigate(`/edit-event/${row.id}`, { state: { eventData: row } });
       // alert(`Edit Event : ${row.name}`);
     }
+  
+  // Dialog for Deleting Event
 
 
   return (
+
+    data.length === 0 ? (
+      <Box sx={{ padding: 2 }}>
+        <Typography variant="h6">No events available</Typography>
+      </Box>
+    ) : 
     <Box sx={{ width: '100%' }}>
       <Paper sx={{ width: '100%', mb: 2 }}>
       <EnhancedTableToolbar
         numSelected={selected.length}
         filter={filter}
         onFilterChange={(e) => setFilter(e.target.value)}
+        selected={selected}
+        handleClickOpen={handleClickOpen}
       />
         <TableContainer>
           <Table
@@ -472,6 +510,69 @@ export default function EventTable() {
         control={<Switch checked={dense} onChange={handleChangeDense} />}
         label="Dense padding"
       />
+      {/* For Deleting Event */}
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        slotProps={{
+          paper: {
+            component: 'form',
+            onSubmit: async (event: React.FormEvent<HTMLFormElement>) => {
+              event.preventDefault();
+              const formData = new FormData(event.currentTarget);
+              // const formJson = Object.fromEntries((formData as any).entries());
+              // const email = formJson.email;
+              const password = formData.get('password');
+              // Handle the form submission logic here
+
+              try {
+                const deleteEventResponse = await axiosWithCredentials.post(`http://localhost:8000/event/delete`, {
+                  password,
+                  email : user?.email,
+                  selectedEvents: selected,
+                } );
+  
+                console.log("Delete Event Response: ", deleteEventResponse);
+                // queryClient.invalidateQueries(['fetchAllEvents']); 
+                refetch();
+                handleClose();
+              }
+              catch (error) {
+                if (axios.isAxiosError(error)) {
+                  console.error("Error deleting event:", error.message);
+                    alert(error.response?.data?.message || "An error occurred while deleting the event.");
+                  
+                } else {
+                  console.error("Unexpected error:", error);
+                }
+              }
+              
+            },
+          },
+        }}
+      >
+        <DialogTitle>Delete</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            To delete the event, please enter your password here for validation.
+          </DialogContentText>
+          <TextField
+            // autoFocus
+            required
+            margin="dense"
+            id="password"
+            name="password"
+            label="Password"
+            type="password"
+            fullWidth
+            variant="standard"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button type="submit">Delete</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

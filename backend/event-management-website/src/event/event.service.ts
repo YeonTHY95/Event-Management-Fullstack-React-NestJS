@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { CreateEventDTO, UpdateEventDTO } from 'src/DTO/DTO';
+import { CreateEventDTO, DeleteEventDTO, UpdateEventDTO } from 'src/DTO/DTO';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class EventService {
 
-    constructor(private prismaService: PrismaService) {}
+    constructor(private prismaService: PrismaService, private userService : UserService) {}
 
     async addEventToDatabase(createEventDTO: CreateEventDTO, thumbnailFile: Express.Multer.File): Promise<any> {
 
@@ -66,5 +67,34 @@ export class EventService {
 
     convertBufferToBase64(buffer: Uint8Array): string {
         return `data:image/png;base64,${Buffer.from(buffer).toString('base64')}`;
+    }
+
+    async deleteEvent(deleteEventDTO:DeleteEventDTO): Promise<boolean> {
+        console.log('Inside deleteEvent, Event data received:', deleteEventDTO);
+
+        const verifyPasswordResult = await this.userService.verifyPassword(deleteEventDTO.email,deleteEventDTO.password);
+        if (!verifyPasswordResult) {
+            throw new Error('Invalid email or password');
+        }
+        console.log('Password verified successfully:', verifyPasswordResult);
+
+        deleteEventDTO.selectedEvents.forEach(async eventID => {
+            console.log('Deleting event with ID:', eventID);
+            if (isNaN(eventID)) {
+                throw new Error(`Invalid event ID: ${eventID}`);
+            }
+            const deleteAction = await this.prismaService.event.delete({
+                where: {
+                    id: Number(eventID),
+                },
+            });
+
+            if (!deleteAction) {
+                throw new Error(`Failed to delete event with ID: ${eventID}`);
+            }
+            console.log(`Event with ID ${eventID} deleted successfully.`);
+        });
+
+        return true;
     }
 }

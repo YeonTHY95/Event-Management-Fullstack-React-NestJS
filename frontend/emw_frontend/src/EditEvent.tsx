@@ -50,7 +50,7 @@ export default function EditEvent() {
         thumbnail: z.instanceof(File).refine(file => file.size > 0, {
             message: "Thumbnail is required",
         }),
-    }).refine((data) => data.startDate < data.endDate, {
+    }).refine((data) => data.startDate <= data.endDate, {
         message: "Start date must be before end date",
         path: ["endDate"],
         });

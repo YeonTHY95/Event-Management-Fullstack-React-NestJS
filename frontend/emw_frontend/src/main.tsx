@@ -14,6 +14,7 @@ import UserView from './UserView.tsx';
 import AddEvent from './AddEvent.tsx';
 import { UserProvider } from './UserContext';
 import EditEvent from './EditEvent.tsx';
+import EventDetail from './EventDetail.tsx';
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
   {
     path: "/edit-event/:editId",
     element : <EditEvent />,
+  },
+  {
+    path: "/eventdetail/:eventId",
+    element : <EventDetail />,
   },
 ]);
 

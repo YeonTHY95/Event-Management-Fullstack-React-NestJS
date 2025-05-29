@@ -35,7 +35,7 @@ const addEventSchema = z.object({
     thumbnail: z.instanceof(File).refine(file => file.size > 0, {
         message: "Thumbnail is required",
     }),
-}).refine((data) => data.startDate < data.endDate, {
+}).refine((data) => data.startDate <= data.endDate, {
     message: "Start date must be before end date",
     path: ["endDate"],
     });
@@ -132,7 +132,7 @@ export default function AddEvent() {
                         <UploadFileComponent setValue={setValue} watch={watch} error={errors.thumbnail} />
                     </Stack>
                 </Box>
-                <Button type="submit">Submit</Button>
+                <Button type="submit" variant="contained" color="primary" style={{marginTop:"20px"}} >Submit</Button>
             </form>
         </Box>
     </Box>

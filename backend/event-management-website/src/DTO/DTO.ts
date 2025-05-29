@@ -62,3 +62,17 @@ export class UpdateEventDTO {
   @IsInt()
   ownerId: number;
 }
+
+export class DeleteEventDTO {
+  @IsInt()
+  @IsNotEmpty()
+  selectedEvents: number[];
+
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  email: string;
+}
