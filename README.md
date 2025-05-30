@@ -1,4 +1,4 @@
-# e-Commerce Website
+# Event Management Full Stack Web Application with NestJS
 
 <p align="center">This is the demonstration of <b>Event Management Full Stack Web Application with NestJS</b></p>
 <p align="center">Video Demonstration : - </p>
