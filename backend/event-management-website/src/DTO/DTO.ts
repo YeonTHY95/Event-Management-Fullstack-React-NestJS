@@ -76,3 +76,10 @@ export class DeleteEventDTO {
   @IsNotEmpty()
   email: string;
 }
+
+export class UpgradeToAdminDTO {
+  @IsInt()
+  @IsNotEmpty()
+  userId: number;
+
+}

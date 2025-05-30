@@ -1,5 +1,5 @@
-import { Body, Controller , HttpException, HttpStatus, Post, Req, Res} from '@nestjs/common';
-import { SignUpDTO, LoginDTO} from '../DTO/DTO';
+import { Body, Controller , HttpException, HttpStatus, Patch, Post, Req, Res} from '@nestjs/common';
+import { SignUpDTO, LoginDTO, UpgradeToAdminDTO} from '../DTO/DTO';
 import { UserService } from './user.service';
 import { AuthService } from 'src/auth/auth.service';
 
@@ -54,10 +54,22 @@ export class UserController {
 
     @Post('logout')
     logout(@Res({ passthrough: true }) res: Response) {
-        console.error("Inside Logout ");
+        console.log("Inside Logout ");
         res.clearCookie('access_token');
         res.clearCookie('refresh_token');
         return { message: 'Logged out' };
+    }
+
+    @Patch('upgrade')
+    upgradeToAdmin(@Body() upgradeToAdminDTO : UpgradeToAdminDTO) {
+        console.log("Inside User Controller Upgrade to Admin");
+        
+        const upgradeToAdminResult =  this.userService.upgradeToAdmin(upgradeToAdminDTO.userId);
+        if (!upgradeToAdminResult) {
+            throw new HttpException('Failed to upgrade user to admin', HttpStatus.NOT_FOUND);
+        }
+        console.log("User upgraded to admin successfully");
+        return { message: 'User upgraded to admin successfully' };
     }
 
     @Post('refresh')

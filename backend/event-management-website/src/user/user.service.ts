@@ -52,5 +52,18 @@ export class UserService {
         return true;
     }
 
+    async upgradeToAdmin(id : number) {
+
+        const user = await this.prisma.user.update({
+            where: { id },
+            data: { isAdmin: true },
+        });
+        if (!user) {
+            throw new Error('User not found');
+        }
+        
+        return true;
+    }
+
 
 }

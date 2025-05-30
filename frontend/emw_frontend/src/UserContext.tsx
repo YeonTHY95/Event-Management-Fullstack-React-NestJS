@@ -3,7 +3,7 @@ import { createContext, useContext, useState, type SetStateAction } from "react"
 import type { userType } from "./App";
 
 
-type loginUserType = {
+export type loginUserType = {
   email : string | null;
   password : string | null;  
   isAdmin : boolean | null;

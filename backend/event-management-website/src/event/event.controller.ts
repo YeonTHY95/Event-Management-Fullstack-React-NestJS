@@ -10,7 +10,7 @@ export class EventController {
 
     constructor(private eventService : EventService) {}
 
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     @Post('add')
     @UseInterceptors(FileInterceptor('thumbnail'))
     async addEvent(@UploadedFile() file: Express.Multer.File ,@Body() createEventDTO: CreateEventDTO) {

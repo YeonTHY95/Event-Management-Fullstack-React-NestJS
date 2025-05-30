@@ -6,12 +6,34 @@ import { useNavigate } from "react-router";
 import axios from 'axios';
 import AdminPage from './AdminPage';
 import NormalUserPage from './NormalUserPage';
+import type {loginUserType} from './UserContext';
+import axiosWithCredentials from './axiosWithCredentials';
 
 export default function UserView() {
 
     const { user, setUser } = useContext(UserContext);
 
     const navigate = useNavigate();
+
+    const upgradeToAdmin = async (user: loginUserType | null) => {
+        try {
+
+            if (!user || user.isAdmin) {
+                console.error("User is either null or already an admin");
+                return;
+            }
+            const upgradeAction = await axiosWithCredentials.patch("http://localhost:8000/user/upgrade", { userId: user.id });
+            // Assuming the response contains the updated user data
+            if (upgradeAction.status === 200) {
+                console.log("Upgrade to Admin successful");
+                setUser({ ...user, isAdmin: true }); 
+            }
+        }
+        catch (error) {
+            console.error("Upgrade to Admin error: ", error);
+            // Handle error, e.g., show a notification or alert
+        }
+    };
 
     const logout = async () => {
 
@@ -38,7 +60,7 @@ export default function UserView() {
                 justifyContent: "space-between",
                 alignItems: "center",
             }}>
-            <p>Role : { user?.isAdmin ? "Admin" : "User" }</p>
+            <p>Role : { user?.isAdmin ? "Admin" : <span>"User" <Button variant="contained" color="primary" onClick={()=>upgradeToAdmin(user)}>Upgrade to Admin</Button></span> } </p>
             <p>Email : { user?.email} </p>
             <Button onClick={logout} variant="contained" color="primary">
                 Logout
