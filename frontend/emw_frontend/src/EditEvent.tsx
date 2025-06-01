@@ -18,6 +18,7 @@ import UploadFileComponent from './UploadFileComponent';
 import dayjs, { Dayjs } from 'dayjs';
 import axiosWithCredentials from './axiosWithCredentials';
 import StatusDropDownMenu from './StatusDropDownMenu';
+import axiosWithLocalStorage from './axiosWithLocalStorage';
 
 
 export type EditEventFormData = {
@@ -131,7 +132,8 @@ export default function EditEvent() {
         try {
             console.log("Inside Edit EventAction with form: ", form);
             // console.log("Thumbnail value:", formData.thumbnail);
-            const response = await axiosWithCredentials.patch("http://localhost:8000/event/update", form, {
+            // const response = await axiosWithCredentials.patch("http://localhost:8000/event/update", form, {
+            const response = await axiosWithLocalStorage.patch("http://localhost:8000/event/update", form, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -140,6 +142,16 @@ export default function EditEvent() {
             console.log("Event added successfully:", response.data);
             navigate("/userview");
         } catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.error("Error deleting event:", error.message);
+                alert(error.response?.data?.message || "An error occurred while deleting the event.");
+                
+                if (error.response?.status === 401 && error.response?.data?.message === "Failed to refresh tokens") {
+                  // Handle unauthorized access, e.g., redirect to login
+                  navigate("/");
+                }
+                
+              } 
             console.error("Error adding event:", error);
         }
     };

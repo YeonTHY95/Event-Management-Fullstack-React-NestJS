@@ -10,6 +10,8 @@ import PaginationComponent from './PaginationComponent';
 import ListSubheader from '@mui/material/ListSubheader';
 import IconButton from '@mui/material/IconButton';
 import InfoIcon from '@mui/icons-material/Info';
+import axios from 'axios';
+import axiosWithLocalStorage from './axiosWithLocalStorage';
 
 
 export type eventType = {
@@ -30,13 +32,46 @@ export default function NormalUserPage() {
   const { data, isPending, error} = useQuery({
     queryKey: ['fetchAllEvents'],
     queryFn: async () => {
-      const response = await axiosWithCredentials.get('http://localhost:8000/event/getAllEvents');
-      if (!response) {
-        throw new Error('Network response was not ok');
-      }
 
-      console.log("Response from getAllEvents: ", response.data);
-      return response.data;
+      try {
+        // const response = await axiosWithCredentials.get('http://localhost:8000/event/getAllEvents');
+        const response = await axiosWithLocalStorage.get('http://localhost:8000/event/getAllEvents');
+        // const response = await fetch('http://localhost:8000/event/getAllEvents', {
+        //   credentials: 'include', // Include cookies in the request
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //   },
+        //   method: "GET",
+        // });
+  
+        // console.log("Response from fetchAllEvents: ", response);
+        // const response = await axios.get('http://localhost:8000/event/getAllEvents', {
+        //   withCredentials: true,
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //   },
+        // });
+        if (!response) {
+          throw new Error('Network response was not ok');
+        }
+  
+        console.log("Response from getAllEvents: ", response.data);
+        // return response.json(); // Assuming the response is in JSON format
+        return response.data; // Assuming the response is in JSON format
+
+      }
+      catch (error) {
+        if (axios.isAxiosError(error)) {
+          console.error("Error deleting event:", error.message);
+          alert(error.response?.data?.message || "An error occurred while deleting the event.");
+          
+          if (error.response?.status === 401 && error.response?.data?.message === "Failed to refresh tokens") {
+            // Handle unauthorized access, e.g., redirect to login
+            navigate("/");
+          }
+          
+        } 
+      }
     },
   });
 

@@ -8,6 +8,7 @@ import AdminPage from './AdminPage';
 import NormalUserPage from './NormalUserPage';
 import type {loginUserType} from './UserContext';
 import axiosWithCredentials from './axiosWithCredentials';
+import axiosWithLocalStorage from './axiosWithLocalStorage';
 
 export default function UserView() {
 
@@ -22,7 +23,8 @@ export default function UserView() {
                 console.error("User is either null or already an admin");
                 return;
             }
-            const upgradeAction = await axiosWithCredentials.patch("http://localhost:8000/user/upgrade", { userId: user.id });
+            // const upgradeAction = await axiosWithCredentials.patch("http://localhost:8000/user/upgrade", { userId: user.id });
+            const upgradeAction = await axiosWithLocalStorage.patch("http://localhost:8000/user/upgrade", { userId: user.id });
             // Assuming the response contains the updated user data
             if (upgradeAction.status === 200) {
                 console.log("Upgrade to Admin successful");
@@ -30,6 +32,16 @@ export default function UserView() {
             }
         }
         catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.error("Error deleting event:", error.message);
+                alert(error.response?.data?.message || "An error occurred while deleting the event.");
+                
+                if (error.response?.status === 401 && error.response?.data?.message === "Failed to refresh tokens") {
+                  // Handle unauthorized access, e.g., redirect to login
+                  navigate("/");
+                }
+                
+              } 
             console.error("Upgrade to Admin error: ", error);
             // Handle error, e.g., show a notification or alert
         }
@@ -60,7 +72,7 @@ export default function UserView() {
                 justifyContent: "space-between",
                 alignItems: "center",
             }}>
-            <p>Role : { user?.isAdmin ? "Admin" : <span>"User" <Button variant="contained" color="primary" onClick={()=>upgradeToAdmin(user)}>Upgrade to Admin</Button></span> } </p>
+            <p>Role : { user?.isAdmin ? "Admin" : <span>User <Button variant="contained" color="primary" onClick={()=>upgradeToAdmin(user)}>Upgrade to Admin</Button></span> } </p>
             <p>Email : { user?.email} </p>
             <Button onClick={logout} variant="contained" color="primary">
                 Logout

@@ -16,6 +16,7 @@ import DatePickerComponent from './DatePickerComponent';
 import UploadFileComponent from './UploadFileComponent';
 import dayjs, { Dayjs } from 'dayjs';
 import axiosWithCredentials from './axiosWithCredentials';
+import axiosWithLocalStorage from './axiosWithLocalStorage';
 
 type EventFormData = {
     eventName: string;
@@ -78,16 +79,27 @@ export default function AddEvent() {
         try {
             console.log("Inside addEventAction with formData: ", formData);
             // console.log("Thumbnail value:", formData.thumbnail);
-            const response = await axiosWithCredentials.post("http://localhost:8000/event/add", form, {
+            console.log("Access Token from LocalStorage", localStorage.getItem("accessToken"));
+            const response = await axiosWithLocalStorage.post("http://localhost:8000/event/add", form, {
                 headers: {
                     "Content-Type": "multipart/form-data",
+                    "Authorization": `Bearer ${localStorage.getItem("accessToken")}`, // Assuming user has a token
                 },
                 // withCredentials: true,
             });
             console.log("Event added successfully:", response.data);
             navigate("/userview");
-        } catch (error) {
+        } 
+        catch (error) {
             console.error("Error adding event:", error);
+            if (axios.isAxiosError(error)) {
+                console.error("Error fetching events:", error.message);
+                if (error.response?.status === 401 && error.response?.data?.message === "Failed to refresh tokens") {
+                  // Handle unauthorized access, e.g., redirect to login
+                  navigate("/");
+                }
+                // throw new Error(error.response?.data?.message || "An error occurred while fetching events.");
+            } 
         }
     };
 

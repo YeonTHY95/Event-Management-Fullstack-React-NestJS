@@ -58,10 +58,10 @@ export class EventService {
         console.log('Fetching all events from the database');
         const events = await this.prismaService.event.findMany({
             include: {
-                owner: true, // Include owner details if needed
+                owner: false, 
             },
         });
-        console.log('Events fetched successfully:', events);
+        console.log('Events fetched successfully:');
         return events;
     }
 

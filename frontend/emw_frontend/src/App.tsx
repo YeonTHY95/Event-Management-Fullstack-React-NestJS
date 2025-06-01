@@ -8,6 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useContext } from 'react';
 import { UserContext } from "./UserContext";
+import axiosWithLocalStorage from "./axiosWithLocalStorage";
 
 
 export type userType = {
@@ -49,7 +50,11 @@ function App() {
   const tanStackMutation = useMutation({
     mutationFn: async (data: loginField) => {
       try {
+
+
+        // const loginResponse = await axios.post("http://localhost:8000/user/login", data);
         const loginResponse = await axios.post("http://localhost:8000/user/login", data);
+        console.log("Login response: ", loginResponse);
         return loginResponse.data; 
       } 
       catch (error) {
@@ -67,7 +72,11 @@ function App() {
     },
     onSuccess: (data) => {
       console.log("Login successful:", data);
+      console.log("accessToken", data.accessToken);
+      console.log("refreshToken", data.refreshToken);
       // setUser({...user, email: data.user.email, role: data.user.isAdmin ? "admin" : "user", name: data.user.name || null, password : data.user.password}); 
+      localStorage.setItem("accessToken", data.accessToken); // Store user data in localStorage
+      localStorage.setItem("refreshToken", data.refreshToken); // Store user data in localStorage
       setUser(data.user);
       reset();
       navigate("/userview");

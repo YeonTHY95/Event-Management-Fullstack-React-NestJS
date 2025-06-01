@@ -35,6 +35,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import axios from 'axios';
 import { useQueryClient } from '@tanstack/react-query';
+import axiosWithLocalStorage from './axiosWithLocalStorage';
 
 interface Data {
   id: number;
@@ -306,15 +307,34 @@ export default function EventTable() {
   const { data, isPending, error,refetch} = useQuery({
     queryKey: ['fetchAllEvents'],
     queryFn: async () => {
-      const response = await axiosWithCredentials.get('http://localhost:8000/event/getAllEvents');
-      if (!response) {
-        throw new Error('Network response was not ok');
-      }
 
-      console.log("Response from getAllEvents: ", response.data);
-      return response.data;
+      try {
+        // const response = await axiosWithCredentials.get('http://localhost:8000/event/getAllEvents');
+        const response = await axiosWithLocalStorage.get('http://localhost:8000/event/getAllEvents');
+        if (!response) {
+          throw new Error('Network response was not ok');
+        }
+  
+        console.log("Response from getAllEvents: ", response.data);
+        return response.data;
+
+      }
+      catch (error) {
+        if (axios.isAxiosError(error)) {
+          console.error("Error fetching events:", error.message);
+          if (error.response?.status === 401 && error.response?.data?.message === "Failed to refresh tokens") {
+            // Handle unauthorized access, e.g., redirect to login
+            navigate("/");
+          }
+          throw new Error(error.response?.data?.message || "An error occurred while fetching events.");
+        } else {
+          console.error("Unexpected error:", error);
+          throw error;
+        }
+      }
     },
-    gcTime : 0
+    gcTime : 0,
+    
   });
 
   const handleRequestSort = (
@@ -526,7 +546,8 @@ export default function EventTable() {
               // Handle the form submission logic here
 
               try {
-                const deleteEventResponse = await axiosWithCredentials.post(`http://localhost:8000/event/delete`, {
+                // const deleteEventResponse = await axiosWithCredentials.post(`http://localhost:8000/event/delete`, {
+                const deleteEventResponse = await axiosWithLocalStorage.post(`http://localhost:8000/event/delete`, {
                   password,
                   email : user?.email,
                   selectedEvents: selected,
@@ -540,7 +561,12 @@ export default function EventTable() {
               catch (error) {
                 if (axios.isAxiosError(error)) {
                   console.error("Error deleting event:", error.message);
-                    alert(error.response?.data?.message || "An error occurred while deleting the event.");
+                  alert(error.response?.data?.message || "An error occurred while deleting the event.");
+                  
+                  if (error.response?.status === 401 && error.response?.data?.message === "Failed to refresh tokens") {
+                    // Handle unauthorized access, e.g., redirect to login
+                    navigate("/");
+                  }
                   
                 } else {
                   console.error("Unexpected error:", error);

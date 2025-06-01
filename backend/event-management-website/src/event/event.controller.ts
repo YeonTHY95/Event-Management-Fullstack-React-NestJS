@@ -10,14 +10,15 @@ export class EventController {
 
     constructor(private eventService : EventService) {}
 
-    // @UseGuards(AuthGuard)
+    @UseGuards(AuthGuard)
     @Post('add')
     @UseInterceptors(FileInterceptor('thumbnail'))
     async addEvent(@UploadedFile() file: Express.Multer.File ,@Body() createEventDTO: CreateEventDTO) {
+
         // Logic to handle adding an event
-        console.log('Event data received:', createEventDTO);
-        console.log('Thumbnail Filename:', file.originalname);
-        console.log('Thumbnail Info:', file);
+        console.log('Inside addEvent, Event data received:', createEventDTO);
+        // console.log('Thumbnail Filename:', file.originalname);
+        // console.log('Thumbnail Info:', file);
 
         const newEvent = await this.eventService.addEventToDatabase(createEventDTO, file);
 
@@ -27,8 +28,11 @@ export class EventController {
         return { message: 'Event added successfully' };
     }
 
+    @UseGuards(AuthGuard)
     @Get('getAllEvents')
     async getAllEvents() {
+
+        console.log('Inside getAllEvents, fetching all events');
         const events = await this.eventService.getAllEvents();
 
         const convertedEvents = await Promise.all(events.map(async event => {
@@ -41,11 +45,12 @@ export class EventController {
             };
         }));
 
-        console.log("Converted Events: ", convertedEvents);
+        // console.log("Converted Events: ", convertedEvents);
 
         return convertedEvents;
     }
 
+    @UseGuards(AuthGuard)
     @Patch('update')
     @UseInterceptors(FileInterceptor('thumbnail'))
     async updateEvent(@UploadedFile() file: Express.Multer.File ,@Body() updateEventDTO: UpdateEventDTO) {
@@ -63,6 +68,8 @@ export class EventController {
         };
         
     }
+
+    @UseGuards(AuthGuard)
     @Post('delete')
     async deleteEvent(@Body() deleteEventDTO: DeleteEventDTO) {
 

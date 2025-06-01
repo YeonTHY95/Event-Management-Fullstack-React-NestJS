@@ -14,9 +14,11 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    console.log("Inside AuthGuard CanActivate, Cookies: ", request.cookies);
-    const accessToken = request.cookies['access_token'] ;
-    console.log("Inside AuthGuard CanActivate, Access Token: ", accessToken);
+    // console.log("Inside AuthGuard CanActivate, Request: ", Object.entries(request));
+    // console.log("Inside AuthGuard CanActivate, Cookies: ", request.cookies);
+    // const accessToken = request.cookies['access_token'] ;
+    // console.log("Inside AuthGuard CanActivate, Access Token: ", accessToken);
+    const accessToken = this.extractTokenFromHeader(request);
     if (!accessToken) {
       throw new ForbiddenException();
     }
@@ -35,15 +37,16 @@ export class AuthGuard implements CanActivate {
     } 
     catch (error) {
       console.log("Inside AuthGuard CanActivate, Error verifying access token: ", error);
-      throw new UnauthorizedException();
+      throw new ForbiddenException();
     }
     return true;
   }
 
-  // private extractTokenFromHeader(request: Request): string | undefined {
-  //   const [type, token] = request.headers.authorization?.split(' ') ?? [];
-  //   return type === 'Bearer' ? token : undefined;
-  // }
+  private extractTokenFromHeader(request: Request): string | undefined {
+    const authorizationHeader = request.headers['authorization'];
+    const [type, token] = authorizationHeader?.split(' ') ?? [];
+    return type === 'Bearer' ? token : undefined;
+  }
 
 
 }

@@ -1,9 +1,10 @@
-import { Body, Controller , HttpException, HttpStatus, Patch, Post, Req, Res} from '@nestjs/common';
+import { Body, Controller , HttpException, HttpStatus, Patch, Post, Req, Res, UseGuards} from '@nestjs/common';
 import { SignUpDTO, LoginDTO, UpgradeToAdminDTO} from '../DTO/DTO';
 import { UserService } from './user.service';
 import { AuthService } from 'src/auth/auth.service';
 
 import { Response, Request } from 'express';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -24,26 +25,33 @@ export class UserController {
     }
 
     @Post("login")
-    async login(@Body() loginDTO : LoginDTO, @Res({ passthrough: true }) response: Response) {
+    async login(@Body() loginDTO : LoginDTO, @Res({passthrough: true}) response: Response) { //passthrough: true 
         console.log("Inside UserController login");
         try {
             const loginUser = await this.userService.login(loginDTO) ;
             const { accessToken, refreshToken } = await this.authService.generateTokens(loginUser.email);
-            response.cookie('access_token', accessToken, {
+
+            const cookieOptions = {
                 httpOnly: true,
-                secure: true,
-                sameSite: 'none',
-                // path: '/auth/refresh',
+                secure: false,        // Must be false for HTTP
+                sameSite: 'lax',      // Safe and works over HTTP
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+              };
+            response.status(200).cookie('access_token', accessToken, {
+                httpOnly: true,
+                secure: false,        // Must be false for HTTP
+                sameSite: 'lax',      // Safe and works over HTTP
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
               });
-            response.cookie('refresh_token', refreshToken, {
+            response.status(200).cookie('refresh_token', refreshToken, {
                 httpOnly: true,
-                secure: true,
-                sameSite: 'none',
-                // path: '/auth/refresh',
+                secure: false,        // Must be false for HTTP
+                sameSite: 'lax',      // Safe and works over HTTP
                 maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
               });
-            return { message: "Login successful" , user: loginUser };
+
+            
+            return { message: "Login successful" , user: loginUser, accessToken, refreshToken };
         }
 
         catch (error) {
@@ -60,6 +68,7 @@ export class UserController {
         return { message: 'Logged out' };
     }
 
+    @UseGuards(AuthGuard)
     @Patch('upgrade')
     upgradeToAdmin(@Body() upgradeToAdminDTO : UpgradeToAdminDTO) {
         console.log("Inside User Controller Upgrade to Admin");
@@ -72,13 +81,16 @@ export class UserController {
         return { message: 'User upgraded to admin successfully' };
     }
 
+    // @UseGuards(AuthGuard)
     @Post('refresh')
-    refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response, @Body() body: any) {
         console.error("Inside Refresh ");
-        const accessToken = req.cookies['access_token'];
-        const refreshToken = req.cookies['refresh_token'];
+        // const accessToken = req.cookies['access_token'];
+        // const refreshToken = req.cookies['refresh_token'];
+        const accessToken = body.accessToken;
+        const refreshToken = body.refreshToken;
 
-        console.log("Cookies: ", req.cookies);
+        // console.log("Cookies: ", req.cookies);
         console.log("Access Token: ", accessToken);
         console.log("Refresh Token: ", refreshToken);
 
@@ -86,16 +98,24 @@ export class UserController {
             throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
         }
 
-        const renewedAccessToken = this.authService.refreshAccessToken(refreshToken);
-        
-        res.cookie('access_token', renewedAccessToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'none',
-            // path: '/auth/refresh',
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
-        
-        return { message: 'Tokens refreshed' };
+        try {
+
+            const renewedAccessToken = await this.authService.refreshAccessToken(refreshToken);
+            
+            res.cookie('access_token', renewedAccessToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+                // path: '/auth/refresh',
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            });
+            
+            return { message: 'Tokens refreshed' , accessToken: renewedAccessToken};
+        }
+        catch (error) {
+            console.error("Error refreshing tokens: ", error);
+            throw new HttpException('Failed to refresh tokens', HttpStatus.UNAUTHORIZED);
+        }
+
     }
 }

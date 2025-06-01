@@ -11,14 +11,15 @@ export class AuthService {
 
     async generateTokens(email: string) {
         const [accessToken, refreshToken] = await Promise.all([
-        this.jwt.signAsync({ sub:  email }, { expiresIn: '15m', secret: process.env.ACCESS_TOKEN_SECRET }),
+        this.jwt.signAsync({ sub:  email }, { expiresIn: '10s', secret: process.env.ACCESS_TOKEN_SECRET }),
         this.jwt.signAsync({ sub:  email }, { expiresIn: '15m', secret: process.env.REFRESH_TOKEN_SECRET }),
         ]);
         return { accessToken, refreshToken };
     }
 
     async refreshAccessToken( refreshToken: string) {
-        // Verify if the refresh token is valid
+        try {
+            // Verify if the refresh token is valid
         const payload = await this.jwt.verifyAsync(
             refreshToken,
             {
@@ -28,12 +29,20 @@ export class AuthService {
 
         console.log("Inside updateRefreshToken, after verifyAsync payload is: ", payload);
         // const test = email === payload.sub;
-        console.log("Payload Test result: ", test);
+        // console.log("Payload Test result: ", test);
         if (!payload) {
             throw new Error('Invalid refresh token');
         }
-        const renewedAccessToken = await this.jwt.signAsync({ sub:  payload.email }, { expiresIn: '60s', secret: process.env.ACCESS_TOKEN_SECRET });
+        const renewedAccessToken = await this.jwt.signAsync({ sub:  payload.email }, { expiresIn: '10s', secret: process.env.ACCESS_TOKEN_SECRET });
+        console.log("Inside updateRefreshToken, renewedAccessToken is: ", renewedAccessToken);
         return renewedAccessToken;
+        }
+
+        catch (error) {
+            console.error("Error in refreshAccessToken: ", error);
+            throw new Error('Failed to refresh access token');
+        }
+        
     }
 
     async validateRefreshToken(email: string, refreshToken: string) {
